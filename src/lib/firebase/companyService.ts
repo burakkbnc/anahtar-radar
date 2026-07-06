@@ -1,4 +1,16 @@
-import { addDoc, collection, doc, getDocs, orderBy, query, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+} from 'firebase/firestore';
 import { getFirebaseDb } from './client';
 import type { Company, CompanyStatus } from '@/lib/data';
 
@@ -11,8 +23,15 @@ export async function getCompanies(): Promise<Company[]> {
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() } as Company));
 }
 
+export async function getCompany(companyId: string): Promise<Company | null> {
+  const snapshot = await getDoc(doc(getFirebaseDb(), 'companies', companyId));
+  if (!snapshot.exists()) return null;
+  return { id: snapshot.id, ...snapshot.data() } as Company;
+}
+
 export async function seedCompanies(items: Company[]) {
   const db = getFirebaseDb();
+
   await Promise.all(
     items.map((item) =>
       setDoc(doc(db, 'companies', item.id), {
@@ -24,7 +43,22 @@ export async function seedCompanies(items: Company[]) {
   );
 }
 
-export async function addCompany(input: Omit<Company, 'id' | 'signals' | 'weaknesses' | 'services' | 'note' | 'potentialRevenue' | 'exportFocus' | 'employeeBand' | 'fair' | 'reference' | 'productGroup'>) {
+export async function addCompany(
+  input: Omit<
+    Company,
+    | 'id'
+    | 'signals'
+    | 'weaknesses'
+    | 'services'
+    | 'note'
+    | 'potentialRevenue'
+    | 'exportFocus'
+    | 'employeeBand'
+    | 'fair'
+    | 'reference'
+    | 'productGroup'
+  >
+) {
   return addDoc(getCompaniesRef(), {
     ...input,
     productGroup: input.sector,
@@ -47,4 +81,15 @@ export async function updateCompanyStatus(companyId: string, status: CompanyStat
     status,
     updatedAt: serverTimestamp(),
   });
+}
+
+export async function updateCompany(companyId: string, data: Partial<Company>) {
+  await updateDoc(doc(getFirebaseDb(), 'companies', companyId), {
+    ...data,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function deleteCompany(companyId: string) {
+  await deleteDoc(doc(getFirebaseDb(), 'companies', companyId));
 }
