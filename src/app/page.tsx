@@ -5,7 +5,7 @@ import { StatCard } from '@/components/StatCard';
 import { ScoreBadge } from '@/components/ScoreBadge';
 import { companies, formatCurrency, tasks, offers } from '@/lib/data';
 
-export default function DashboardPage() {
+export default function BugünPage() {
   const totalPotential = companies.reduce((sum, company) => sum + company.potentialRevenue, 0);
   const hotCompanies = companies.filter((company) => company.score >= 88);
   const offerTotal = offers.reduce((sum, offer) => sum + offer.amount, 0);
@@ -14,7 +14,7 @@ export default function DashboardPage() {
     <Shell>
       <div className="flex flex-col gap-2">
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-muted">Anahtar Creative</p>
-        <h1 className="text-4xl font-bold tracking-tight text-ink">Satış Radar Dashboard</h1>
+        <h1 className="text-4xl font-bold tracking-tight text-ink">Satış Radar Bugün</h1>
         <p className="max-w-3xl text-muted">Bugün kimi arayacağımızı, neden arayacağımızı ve hangi hizmetle yaklaşacağımızı gösteren satış istihbarat ekranı.</p>
       </div>
 
@@ -30,7 +30,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <h2 className="text-xl font-bold">Bugün aranacak firmalar</h2>
-              <p className="text-sm text-muted">Önce yüksek puanlı medikal üreticiler.</p>
+              <p className="text-sm text-muted">Önce yüksek puanlı PLAT üreticileri.</p>
             </div>
             <Link href="/companies" className="inline-flex items-center gap-2 rounded-2xl bg-ink px-4 py-2 text-sm font-semibold text-white">
               Tüm firmalar <ArrowRight size={16} />
@@ -59,9 +59,9 @@ export default function DashboardPage() {
               <p className="text-sm text-slate-300">İlk kampanya metni</p>
             </div>
           </div>
-          <p className="mt-6 text-lg leading-8 text-slate-100">Üzümcü Hastane Ekipmanları referansını kullanarak Ankara merkezli medikal üreticilere “fuar + ihracat dijital satış kiti” yaklaşımıyla ulaş.</p>
+          <p className="mt-6 text-lg leading-8 text-slate-100">Anahtar Creative’in TÜYAP, Enerjisa, TÜMAD, Safi Holding ve kurumsal referanslarını kullanarak PLAT üreticilerine “ihracat odaklı dijital satış kiti” yaklaşımıyla ulaş.</p>
           <div className="mt-6 rounded-2xl bg-white/10 p-4 text-sm text-slate-200">
-            İlk teklif paketi: kurumsal film + çok dilli web sitesi + fuar içerik üretimi.
+            İlk teklif paketi: İngilizce web + kurumsal/fabrika filmi + fuar içerik üretimi + LinkedIn B2B iletişimi.
           </div>
         </section>
       </div>
@@ -91,9 +91,9 @@ export default function DashboardPage() {
             <h2 className="text-xl font-bold">Sprint hedefi</h2>
           </div>
           <div className="mt-5 space-y-4 text-sm text-muted">
-            <p><strong className="text-ink">Hafta 1:</strong> 50 medikal firma, 20 telefon, 5 toplantı.</p>
+            <p><strong className="text-ink">Hafta 1:</strong> 50 PLAT firması, 20 telefon, 5 toplantı.</p>
             <p><strong className="text-ink">Satış açısı:</strong> Web sitesi satma. İhracat odaklı dijital satış kiti öner.</p>
-            <p><strong className="text-ink">Referans:</strong> Üzümcü ilişkisi ilk 30 saniyede güven unsuru olarak kullanılacak.</p>
+            <p><strong className="text-ink">Referans:</strong> Anahtar Creative kurumsal referansları ilk 30 saniyede güven unsuru olarak kullanılacak.</p>
           </div>
         </section>
       </div>

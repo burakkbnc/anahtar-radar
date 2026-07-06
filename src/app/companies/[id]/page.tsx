@@ -57,7 +57,7 @@ export default function CompanyDetailPage({ params }: { params: { id: string } }
           <section className="rounded-3xl border border-line bg-white p-6 shadow-soft">
             <h2 className="text-xl font-bold">İlk arama metni</h2>
             <p className="mt-4 text-sm leading-7 text-muted">
-              Merhaba, ben Burak. Anahtar Creative olarak medikal sektörde Üzümcü Hastane Ekipmanları ile yürüttüğümüz çalışmalardan dolayı sizi de yakından takip ediyoruz. Özellikle fuar ve ihracat iletişimi tarafında üretici firmalara tek ekipten video, web ve katalog desteği veriyoruz. Uygunsa kısa bir tanışma toplantısı planlamak isterim.
+              Merhaba, ben Burak. Anahtar Creative olarak üretici firmalara yönelik kurumsal iletişim, fuar içerikleri ve dijital satış materyalleri geliştiriyoruz. Firmanızı PLAT/private label üretici ağı içinde gördük; özellikle ihracat ve B2B satış iletişimi tarafında kısa bir analiz paylaşmak isteriz. Uygunsa kısa bir tanışma toplantısı planlamak isterim.
             </p>
           </section>
         </aside>

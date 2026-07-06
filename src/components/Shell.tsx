@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { BarChart3, Building2, CalendarDays, CheckSquare, FileText, Radar, Settings, Sparkles, KanbanSquare, TentTree } from 'lucide-react';
 
 const nav = [
-  { href: '/', label: 'Dashboard', icon: BarChart3 },
+  { href: '/', label: 'Bugün', icon: BarChart3 },
   { href: '/companies', label: 'Firmalar', icon: Building2 },
   { href: '/pipeline', label: 'Pipeline', icon: KanbanSquare },
   { href: '/tasks', label: 'Görevler', icon: CheckSquare },
@@ -22,7 +22,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           </div>
           <div>
             <div className="text-lg font-bold">Anahtar Radar</div>
-            <div className="text-xs text-muted">Sales Intelligence MVP</div>
+            <div className="text-xs text-muted">Satış Operasyonu MVP</div>
           </div>
         </Link>
         <nav className="mt-10 space-y-2">
@@ -38,7 +38,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </nav>
         <div className="absolute bottom-6 left-6 right-6 rounded-3xl bg-ink p-5 text-white">
           <div className="flex items-center gap-2 text-sm font-semibold"><CalendarDays size={16} /> Bugünün odağı</div>
-          <p className="mt-2 text-sm text-slate-300">Üzümcü referansı ile medikal üreticilerde ilk 10 temas.</p>
+          <p className="mt-2 text-sm text-slate-300">PLAT üreticilerinde ilk 20 telefon ve 5 toplantı hedefi.</p>
         </div>
       </aside>
       <main className="lg:pl-72">
