@@ -1,0 +1,20 @@
+node_modules
+# dependencies
+node_modules/
+
+# next
+.next/
+out/
+
+# environment
+.env.local
+.env
+
+# vercel
+.vercel/
+
+# macOS
+.DS_Store
+
+# build
+*.tsbuildinfo
