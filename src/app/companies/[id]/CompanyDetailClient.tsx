@@ -19,10 +19,25 @@ import {
 } from 'lucide-react';
 import { Shell } from '@/components/Shell';
 import { ScoreBadge } from '@/components/ScoreBadge';
-import { formatCurrency, type Activity, type ActivityType, type Company, type CompanyStatus, type Contact } from '@/lib/data';
+import {
+  formatCurrency,
+  type Activity,
+  type ActivityType,
+  type Company,
+  type CompanyStatus,
+  type Contact,
+  type Task,
+  type TaskStatus,
+} from '@/lib/data';
 import { deleteCompany, getCompany, updateCompany } from '@/lib/firebase/companyService';
 import { addActivity, deleteActivity, getActivities } from '@/lib/firebase/activityService';
 import { addContact, deleteContact, getContacts } from '@/lib/firebase/contactService';
+import {
+  addTask,
+  deleteTask,
+  getTasks,
+  updateTaskStatus,
+} from '@/lib/firebase/taskService';
 
 const statuses: CompanyStatus[] = ['Yeni', 'Aranacak', 'Arandı', 'Toplantı', 'Teklif', 'Takip', 'Kazanıldı', 'Kaybedildi'];
 
@@ -31,6 +46,8 @@ export function CompanyDetailClient({ companyId }: { companyId: string }) {
   const [company, setCompany] = useState<Company | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+const [taskOpen, setTaskOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -71,10 +88,20 @@ async function loadContacts() {
     setMessage('Kişiler okunamadı.');
   }
 }
+async function loadTasks() {
+  try {
+    const data = await getTasks(companyId);
+    setTasks(data);
+  } catch (error) {
+    console.error(error);
+    setMessage('Görevler okunamadı.');
+  }
+}
   useEffect(() => {
   loadCompany();
   loadActivities();
   loadContacts();
+  loadTasks();
 }, [companyId]);
 
   async function handleUpdate(event: FormEvent<HTMLFormElement>) {
@@ -232,6 +259,62 @@ async function handleDeleteContact(contactId: string) {
   } catch (error) {
     console.error(error);
     setMessage('Kişi silinemedi.');
+  }
+}
+async function handleAddTask(event: FormEvent<HTMLFormElement>) {
+  event.preventDefault();
+  if (!company) return;
+
+  const form = event.currentTarget;
+  const formData = new FormData(form);
+
+  setSaving(true);
+
+  try {
+    await addTask({
+      companyId: company.id,
+      title: String(formData.get('title') ?? '').trim(),
+      description: String(formData.get('description') ?? '').trim(),
+      dueDate: String(formData.get('dueDate') ?? ''),
+      assignedTo: String(formData.get('assignedTo') ?? company.owner ?? ''),
+    });
+
+    form.reset();
+    setTaskOpen(false);
+    setMessage('Görev eklendi.');
+    await loadTasks();
+  } catch (error) {
+    console.error(error);
+    setMessage('Görev eklenemedi.');
+  } finally {
+    setSaving(false);
+  }
+}
+console.log('Görev kaydet tetiklendi');
+async function handleTaskStatus(taskId: string, status: TaskStatus) {
+  if (!company) return;
+
+  try {
+    await updateTaskStatus(company.id, taskId, status);
+    await loadTasks();
+  } catch (error) {
+    console.error(error);
+    setMessage('Görev durumu güncellenemedi.');
+  }
+}
+
+async function handleDeleteTask(taskId: string) {
+  if (!company) return;
+
+  if (!window.confirm('Görev silinsin mi?')) return;
+
+  try {
+    await deleteTask(company.id, taskId);
+    await loadTasks();
+    setMessage('Görev silindi.');
+  } catch (error) {
+    console.error(error);
+    setMessage('Görev silinemedi.');
   }
 }
   if (loading) {
@@ -533,6 +616,115 @@ async function handleDeleteContact(contactId: string) {
         Bu firmaya henüz iletişim kişisi eklenmedi.
       </div>
     )}
+    <section className="rounded-3xl border border-line bg-white p-6 shadow-soft">
+  <div className="flex items-center justify-between">
+    <h2 className="text-xl font-bold">Görevler</h2>
+
+    <button
+      type="button"
+      onClick={() => setTaskOpen((v) => !v)}
+      className="rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-white"
+    >
+      + Görev
+    </button>
+  </div>
+
+  {taskOpen && (
+    <form onSubmit={handleAddTask} className="mt-4 space-y-3">
+      <input
+        name="title"
+        placeholder="Görev başlığı"
+        className="w-full rounded-xl border border-line px-3 py-2"
+        required
+      />
+
+      <textarea
+        name="description"
+        placeholder="Açıklama"
+        className="min-h-24 w-full rounded-xl border border-line px-3 py-2"
+      />
+
+      <input
+        type="date"
+        name="dueDate"
+        className="w-full rounded-xl border border-line px-3 py-2"
+      />
+
+      <input
+        name="assignedTo"
+        defaultValue={company.owner}
+        placeholder="Sorumlu"
+        className="w-full rounded-xl border border-line px-3 py-2"
+      />
+
+      <button
+        type="submit"
+        disabled={saving}
+        className="w-full rounded-xl bg-ink py-3 font-semibold text-white disabled:opacity-60"
+      >
+        {saving ? 'Kaydediliyor...' : 'Görev Kaydet'}
+      </button>
+    </form>
+  )}
+
+  <div className="mt-5 space-y-3">
+    {tasks.map((task) => (
+      <div
+        key={task.id}
+        className="rounded-2xl border border-line p-4"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1">
+            <div className="font-semibold">
+              {task.title}
+            </div>
+
+            {task.description && (
+              <p className="mt-1 text-sm text-muted">
+                {task.description}
+              </p>
+            )}
+
+            <div className="mt-2 text-xs text-muted">
+              📅 {task.dueDate || '-'} · 👤 {task.assignedTo}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <select
+              value={task.status}
+              onChange={(e) =>
+                handleTaskStatus(
+                  task.id,
+                  e.target.value as TaskStatus
+                )
+              }
+              className="rounded-lg border border-line px-2 py-1 text-xs"
+            >
+              <option value="todo">Yapılacak</option>
+              <option value="doing">Devam Ediyor</option>
+              <option value="done">Tamamlandı</option>
+            </select>
+
+            <button
+              type="button"
+              onClick={() => handleDeleteTask(task.id)}
+              className="text-xs font-semibold text-red-600"
+            >
+              Sil
+            </button>
+          </div>
+        </div>
+      </div>
+    ))}
+
+    {!tasks.length && (
+      <div className="rounded-xl border border-dashed border-line p-4 text-sm text-muted">
+        Bu firmaya ait görev bulunmuyor.
+      </div>
+    )}
+  </div>
+</section>
   </div>
 </section>
           <section className="rounded-3xl border border-line bg-white p-6 shadow-soft">

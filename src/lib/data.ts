@@ -45,6 +45,24 @@ export interface Contact {
 
   createdAt: number;
 }
+
+export type TaskStatus = 'todo' | 'doing' | 'done';
+
+export interface Task {
+  id: string;
+  companyId: string;
+
+  title: string;
+  description: string;
+
+  dueDate: string;
+
+  status: TaskStatus;
+
+  assignedTo: string;
+
+  createdAt: number;
+}
 export interface Activity {
   id: string;
   companyId: string;
