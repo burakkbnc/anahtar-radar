@@ -26,7 +26,37 @@ export type Company = {
   services: string[];
   note: string;
 };
+export type ActivityType =
+  | 'note'
+  | 'call'
+  | 'meeting'
+  | 'email'
+  | 'offer'
+  | 'task';
+export interface Contact {
+  id: string;
+  companyId: string;
 
+  name: string;
+  title: string;
+  phone: string;
+  email: string;
+  linkedin: string;
+
+  createdAt: number;
+}
+export interface Activity {
+  id: string;
+  companyId: string;
+
+  type: ActivityType;
+
+  title: string;
+  description: string;
+
+  createdBy: string;
+  createdAt: number;
+}
 const baseSignals = ['PLAT üyesi / private label ağı', 'B2B üretici hedefi', 'Fuar ve ihracat iletişimi potansiyeli'];
 const baseWeaknesses = ['Web sitesi ve İngilizce içerik kontrol edilecek', 'LinkedIn karar verici araştırılacak', 'Kurumsal film / fuar materyali varlığı incelenecek'];
 const baseServices = ['İhracat odaklı web sitesi', 'Fuar içerikleri', 'LinkedIn B2B iletişimi', 'Kurumsal film'];

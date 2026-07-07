@@ -6,27 +6,36 @@ import { FormEvent, useEffect, useState } from 'react';
 import {
   ArrowLeft,
   BriefcaseBusiness,
+  Clock,
   ExternalLink,
   Mail,
   MapPin,
   Phone,
+  Plus,
   Sparkles,
   Trash2,
   Users,
+  UserPlus,
 } from 'lucide-react';
 import { Shell } from '@/components/Shell';
 import { ScoreBadge } from '@/components/ScoreBadge';
-import { formatCurrency, type Company, type CompanyStatus } from '@/lib/data';
+import { formatCurrency, type Activity, type ActivityType, type Company, type CompanyStatus, type Contact } from '@/lib/data';
 import { deleteCompany, getCompany, updateCompany } from '@/lib/firebase/companyService';
+import { addActivity, deleteActivity, getActivities } from '@/lib/firebase/activityService';
+import { addContact, deleteContact, getContacts } from '@/lib/firebase/contactService';
 
 const statuses: CompanyStatus[] = ['Yeni', 'Aranacak', 'Arandı', 'Toplantı', 'Teklif', 'Takip', 'Kazanıldı', 'Kaybedildi'];
 
 export function CompanyDetailClient({ companyId }: { companyId: string }) {
   const router = useRouter();
   const [company, setCompany] = useState<Company | null>(null);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [contactOpen, setContactOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(false);
   const [message, setMessage] = useState('');
 
   async function loadCompany() {
@@ -44,9 +53,29 @@ export function CompanyDetailClient({ companyId }: { companyId: string }) {
     }
   }
 
+  async function loadActivities() {
+    try {
+      const data = await getActivities(companyId);
+      setActivities(data);
+    } catch (error) {
+      console.error(error);
+      setMessage('Aktiviteler okunamadı.');
+    }
+  }
+async function loadContacts() {
+  try {
+    const data = await getContacts(companyId);
+    setContacts(data);
+  } catch (error) {
+    console.error(error);
+    setMessage('Kişiler okunamadı.');
+  }
+}
   useEffect(() => {
-    loadCompany();
-  }, [companyId]);
+  loadCompany();
+  loadActivities();
+  loadContacts();
+}, [companyId]);
 
   async function handleUpdate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -102,6 +131,109 @@ export function CompanyDetailClient({ companyId }: { companyId: string }) {
     }
   }
 
+  async function handleAddActivity(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!company) return;
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    const type = String(formData.get('type') ?? 'note') as ActivityType;
+    const title = String(formData.get('title') ?? '').trim();
+    const description = String(formData.get('description') ?? '').trim();
+
+    if (!title || !description) {
+      setMessage('Aktivite başlığı ve açıklaması zorunlu.');
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      await addActivity({
+        companyId: company.id,
+        type,
+        title,
+        description,
+        createdBy: company.owner || 'Burak',
+      });
+
+      form.reset();
+      setActivityOpen(false);
+      setMessage('Aktivite eklendi.');
+      await loadActivities();
+    } catch (error) {
+      console.error(error);
+      setMessage('Aktivite eklenemedi. Firestore Rules kontrol et.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeleteActivity(activityId: string) {
+    if (!company) return;
+
+    const confirmed = window.confirm('Aktivite silinsin mi?');
+    if (!confirmed) return;
+
+    setSaving(true);
+
+    try {
+      await deleteActivity(company.id, activityId);
+      setMessage('Aktivite silindi.');
+      await loadActivities();
+    } catch (error) {
+      console.error(error);
+      setMessage('Aktivite silinemedi.');
+    } finally {
+      setSaving(false);
+    }
+  }
+async function handleAddContact(event: FormEvent<HTMLFormElement>) {
+  event.preventDefault();
+  if (!company) return;
+
+  const form = event.currentTarget;
+  const formData = new FormData(form);
+
+  setSaving(true);
+
+  try {
+    await addContact({
+      companyId: company.id,
+      name: String(formData.get('name') ?? ''),
+      title: String(formData.get('title') ?? ''),
+      phone: String(formData.get('phone') ?? ''),
+      email: String(formData.get('email') ?? ''),
+      linkedin: String(formData.get('linkedin') ?? ''),
+    });
+
+    form.reset();
+    setContactOpen(false);
+    setMessage('Kişi eklendi.');
+    await loadContacts();
+  } catch (error) {
+    console.error(error);
+    setMessage('Kişi eklenemedi.');
+  } finally {
+    setSaving(false);
+  }
+}
+
+async function handleDeleteContact(contactId: string) {
+  if (!company) return;
+
+  if (!window.confirm('Kişi silinsin mi?')) return;
+
+  try {
+    await deleteContact(company.id, contactId);
+    await loadContacts();
+    setMessage('Kişi silindi.');
+  } catch (error) {
+    console.error(error);
+    setMessage('Kişi silinemedi.');
+  }
+}
   if (loading) {
     return (
       <Shell>
@@ -209,6 +341,200 @@ export function CompanyDetailClient({ companyId }: { companyId: string }) {
             </div>
           </section>
 
+          <section className="rounded-3xl border border-line bg-white p-6 shadow-soft">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="flex items-center gap-2 text-xl font-bold">
+                <Clock size={20} /> Aktiviteler
+              </h2>
+
+              <button
+                type="button"
+                onClick={() => setActivityOpen((value) => !value)}
+                className="inline-flex items-center gap-2 rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-white"
+              >
+                <Plus size={15} /> Aktivite Ekle
+              </button>
+            </div>
+
+            {activityOpen ? (
+              <form onSubmit={handleAddActivity} className="mt-4 space-y-3">
+                <select name="type" className="w-full rounded-xl border border-line px-3 py-2 outline-none">
+                  <option value="note">Not</option>
+                  <option value="call">Telefon</option>
+                  <option value="meeting">Toplantı</option>
+                  <option value="email">E-posta</option>
+                  <option value="offer">Teklif</option>
+                  <option value="task">Görev</option>
+                </select>
+
+                <input
+                  name="title"
+                  placeholder="Başlık"
+                  className="w-full rounded-xl border border-line px-3 py-2 outline-none"
+                  required
+                />
+
+                <textarea
+                  name="description"
+                  placeholder="Açıklama"
+                  className="min-h-28 w-full rounded-xl border border-line px-3 py-2 outline-none"
+                  required
+                />
+
+                <button
+                  type="submit"
+                  className="w-full rounded-xl bg-ink py-3 font-semibold text-white disabled:opacity-60"
+                  disabled={saving}
+                >
+                  {saving ? 'Kaydediliyor...' : 'Kaydet'}
+                </button>
+              </form>
+            ) : null}
+
+            <div className="mt-5 space-y-3">
+              {activities.map((activity) => (
+                <div key={activity.id} className="rounded-xl border border-line p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-xs font-semibold uppercase text-muted">{activity.type}</div>
+                      <div className="mt-1 font-semibold text-ink">{activity.title}</div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteActivity(activity.id)}
+                      className="text-xs font-semibold text-red-600"
+                      disabled={saving}
+                    >
+                      Sil
+                    </button>
+                  </div>
+
+                  <p className="mt-2 text-sm leading-6 text-muted">{activity.description}</p>
+                  <div className="mt-2 text-xs text-muted">Ekleyen: {activity.createdBy}</div>
+                </div>
+              ))}
+
+              {!activities.length ? (
+                <div className="rounded-xl border border-dashed border-line p-4 text-sm text-muted">
+                  Henüz aktivite bulunmuyor.
+                </div>
+              ) : null}
+            </div>
+          </section>
+<section className="rounded-3xl border border-line bg-white p-6 shadow-soft">
+  <div className="flex items-center justify-between">
+    <h2 className="flex items-center gap-2 text-xl font-bold">
+      <Users size={20} />
+      İletişim Kişileri
+    </h2>
+
+    <button
+      type="button"
+      onClick={() => setContactOpen((v) => !v)}
+      className="inline-flex items-center gap-2 rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-white"
+    >
+      <UserPlus size={15} />
+      Kişi Ekle
+    </button>
+  </div>
+
+  {contactOpen && (
+    <form onSubmit={handleAddContact} className="mt-4 space-y-3">
+      <input
+        name="name"
+        placeholder="Ad Soyad"
+        className="w-full rounded-xl border border-line px-3 py-2 outline-none"
+        required
+      />
+
+      <input
+        name="title"
+        placeholder="Görevi"
+        className="w-full rounded-xl border border-line px-3 py-2 outline-none"
+      />
+
+      <input
+        name="phone"
+        placeholder="Telefon"
+        className="w-full rounded-xl border border-line px-3 py-2 outline-none"
+      />
+
+      <input
+        name="email"
+        placeholder="E-posta"
+        className="w-full rounded-xl border border-line px-3 py-2 outline-none"
+      />
+
+      <input
+        name="linkedin"
+        placeholder="LinkedIn"
+        className="w-full rounded-xl border border-line px-3 py-2 outline-none"
+      />
+
+      <button
+        type="submit"
+        disabled={saving}
+        className="w-full rounded-xl bg-ink py-3 font-semibold text-white disabled:opacity-60"
+      >
+        {saving ? 'Kaydediliyor...' : 'Kişiyi Kaydet'}
+      </button>
+    </form>
+  )}
+
+  <div className="mt-5 space-y-3">
+    {contacts.map((contact) => (
+      <div
+        key={contact.id}
+        className="rounded-2xl border border-line p-4"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="font-semibold text-ink">
+              {contact.name}
+            </div>
+
+            <div className="text-sm text-muted">
+              {contact.title}
+            </div>
+
+            {contact.phone && (
+              <div className="mt-2 text-sm">
+                📞 {contact.phone}
+              </div>
+            )}
+
+            {contact.email && (
+              <div className="text-sm">
+                ✉️ {contact.email}
+              </div>
+            )}
+
+            {contact.linkedin && (
+              <div className="text-sm truncate">
+                🔗 {contact.linkedin}
+              </div>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => handleDeleteContact(contact.id)}
+            className="text-xs font-semibold text-red-600"
+          >
+            Sil
+          </button>
+        </div>
+      </div>
+    ))}
+
+    {!contacts.length && (
+      <div className="rounded-xl border border-dashed border-line p-4 text-sm text-muted">
+        Bu firmaya henüz iletişim kişisi eklenmedi.
+      </div>
+    )}
+  </div>
+</section>
           <section className="rounded-3xl border border-line bg-white p-6 shadow-soft">
             <h2 className="text-xl font-bold">İlk arama metni</h2>
             <p className="mt-4 text-sm leading-7 text-muted">
