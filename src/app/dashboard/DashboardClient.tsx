@@ -62,10 +62,10 @@ export default function DashboardClient() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-5">
-        <KpiCard title="Toplam Firma" value={stats.totalCompanies} href="/companies" />
-        <KpiCard title="Açık Görev" value={stats.openTasks} href="/companies" />
-        <KpiCard title="Bugün Aranacak" value={stats.todayCalls} href="/companies" />
-        <KpiCard title="Geciken Görev" value={stats.overdueTasks} href="/companies" />
+        <KpiCard title="Toplam Firma" value={stats.totalCompanies} href="/tasks" />
+        <KpiCard title="Açık Görev" value={stats.openTasks} href="/tasks"/>
+        <KpiCard title="Bugün Aranacak" value={stats.todayCalls} href="/tasks" />
+        <KpiCard title="Geciken Görev" value={stats.overdueTasks} href="/tasks" />
         <KpiCard title="Potansiyel Ciro" value={formatCurrency(stats.potentialRevenue)} href="/pipeline" />
       </div>
 
