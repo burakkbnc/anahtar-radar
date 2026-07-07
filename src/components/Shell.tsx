@@ -1,9 +1,10 @@
 import Link from 'next/link';
-import { BarChart3, Building2, CalendarDays, CheckSquare, FileText, Radar, Settings, Sparkles, KanbanSquare, TentTree } from 'lucide-react';
+import { BarChart3, Building2, CalendarDays, CheckSquare, FileText, Radar, Settings, Sparkles, KanbanSquare, TentTree, Search, } from 'lucide-react';
 
 const nav = [
   { href: '/', label: 'Bugün', icon: BarChart3 },
   { href: '/companies', label: 'Firmalar', icon: Building2 },
+  { href: '/leads', label: 'Lead Radar', icon: Search },
   { href: '/pipeline', label: 'Pipeline', icon: KanbanSquare },
   { href: '/tasks', label: 'Görevler', icon: CheckSquare },
   { href: '/offers', label: 'Teklifler', icon: FileText },
