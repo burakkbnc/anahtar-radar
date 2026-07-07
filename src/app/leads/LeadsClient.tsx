@@ -63,6 +63,7 @@ export default function LeadsClient() {
 
   const importedCount = leads.filter((lead) => lead.status === "imported").length;
   const newCount = leads.filter((lead) => lead.status !== "imported").length;
+  const duplicateCount = leads.filter((lead) => lead.duplicateDetected).length;
 
   if (loading) {
     return (
@@ -86,10 +87,11 @@ export default function LeadsClient() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <SummaryCard title="Lead Listesi" value={batches.length} />
         <SummaryCard title="Yeni Lead" value={newCount} />
         <SummaryCard title="CRM’ye Aktarılan" value={importedCount} />
+        <SummaryCard title="Duplicate" value={duplicateCount} />
       </div>
 
       {batches.length === 0 ? (
@@ -137,7 +139,11 @@ export default function LeadsClient() {
                 leads.map((lead) => (
                   <div
                     key={lead.id}
-                    className="rounded-2xl border border-line p-4"
+                    className={
+                      lead.duplicateDetected
+                        ? "rounded-2xl border border-amber-200 bg-amber-50 p-4"
+                        : "rounded-2xl border border-line p-4"
+                    }
                   >
                     <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
                       <div>
@@ -155,6 +161,12 @@ export default function LeadsClient() {
                               CRM’ye aktarıldı
                             </span>
                           )}
+
+                          {lead.duplicateDetected && (
+                            <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+                              Mevcut CRM kaydıyla eşleşti
+                            </span>
+                          )}
                         </div>
 
                         <p className="mt-2 text-sm text-muted">
@@ -168,6 +180,13 @@ export default function LeadsClient() {
                           </p>
                         )}
 
+                        {lead.duplicateDetected && (
+                          <p className="mt-3 rounded-2xl bg-white/70 p-3 text-sm font-medium text-amber-800">
+                            Bu lead yeni firma olarak eklenmedi. Sistem mevcut
+                            CRM kaydıyla eşleştirdi ve timeline’a not düştü.
+                          </p>
+                        )}
+
                         <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
                           {lead.website && <span>{lead.website}</span>}
                           {lead.phone && <span>{lead.phone}</span>}
@@ -178,10 +197,14 @@ export default function LeadsClient() {
                       <div className="flex shrink-0 gap-2">
                         {lead.status === "imported" ? (
                           <Link
-                            href="/companies"
-                            className="rounded-2xl border border-line px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                            href={
+                              lead.importedCompanyId
+                                ? `/companies/${lead.importedCompanyId}`
+                                : "/companies"
+                            }
+                            className="rounded-2xl border border-line bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
                           >
-                            Firmalara Git
+                            Firma Kaydını Aç
                           </Link>
                         ) : (
                           <button
