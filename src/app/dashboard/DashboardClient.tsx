@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   completeDashboardTask,
@@ -61,14 +62,11 @@ export default function DashboardClient() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-5">
-        <KpiCard title="Toplam Firma" value={stats.totalCompanies} />
-        <KpiCard title="Açık Görev" value={stats.openTasks} />
-        <KpiCard title="Bugün Aranacak" value={stats.todayCalls} />
-        <KpiCard title="Geciken Görev" value={stats.overdueTasks} />
-        <KpiCard
-          title="Potansiyel Ciro"
-          value={formatCurrency(stats.potentialRevenue)}
-        />
+        <KpiCard title="Toplam Firma" value={stats.totalCompanies} href="/companies" />
+        <KpiCard title="Açık Görev" value={stats.openTasks} href="/companies" />
+        <KpiCard title="Bugün Aranacak" value={stats.todayCalls} href="/companies" />
+        <KpiCard title="Geciken Görev" value={stats.overdueTasks} href="/companies" />
+        <KpiCard title="Potansiyel Ciro" value={formatCurrency(stats.potentialRevenue)} href="/pipeline" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -82,9 +80,10 @@ export default function DashboardClient() {
               <EmptyText text="Pipeline verisi bulunamadı." />
             ) : (
               stats.pipelineSummary.map((item) => (
-                <div
+                <Link
                   key={item.stage}
-                  className="flex items-center justify-between rounded-xl border bg-slate-50 px-4 py-3"
+                  href="/pipeline"
+                  className="flex items-center justify-between rounded-xl border bg-slate-50 px-4 py-3 transition hover:bg-slate-100"
                 >
                   <div>
                     <p className="font-medium text-slate-900">{item.stage}</p>
@@ -96,7 +95,7 @@ export default function DashboardClient() {
                   <p className="text-sm font-semibold text-slate-700">
                     {formatCurrency(item.potentialRevenue)}
                   </p>
-                </div>
+                </Link>
               ))
             )}
           </div>
@@ -114,19 +113,17 @@ export default function DashboardClient() {
               stats.todayTasks.map((task) => (
                 <div
                   key={task.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border px-4 py-3"
+                  className="flex items-center justify-between rounded-xl border px-4 py-3 transition hover:bg-slate-50"
                 >
-                  <div>
+                  <Link href={`/companies/${task.companyId}`} className="flex-1">
                     <p className="font-medium text-slate-900">{task.title}</p>
-                    <p className="text-xs text-slate-500">
-                      {task.companyName}
-                    </p>
-                  </div>
+                    <p className="text-xs text-slate-500">{task.companyName}</p>
+                  </Link>
 
                   <button
                     type="button"
                     onClick={() => handleCompleteTask(task.companyId, task.id)}
-                    className="rounded-lg border px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                    className="ml-4 rounded-lg border px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100"
                   >
                     Tamamla
                   </button>
@@ -147,12 +144,16 @@ export default function DashboardClient() {
             <EmptyText text="Henüz aktivite bulunmuyor." />
           ) : (
             stats.recentActivities.map((activity) => (
-              <div key={activity.id} className="rounded-xl border px-4 py-3">
+              <Link
+                key={activity.id}
+                href={`/companies/${activity.companyId}`}
+                className="block rounded-xl border px-4 py-3 transition hover:bg-slate-50"
+              >
                 <p className="font-medium text-slate-900">{activity.title}</p>
                 <p className="text-xs text-slate-500">
                   {activity.companyName}
                 </p>
-              </div>
+              </Link>
             ))
           )}
         </div>
@@ -164,16 +165,22 @@ export default function DashboardClient() {
 function KpiCard({
   title,
   value,
+  href,
 }: {
   title: string;
   value: string | number;
+  href?: string;
 }) {
-  return (
-    <div className="rounded-2xl border bg-white p-5">
+  const card = (
+    <div className="rounded-2xl border bg-white p-5 transition hover:border-slate-300 hover:shadow-sm">
       <p className="text-sm text-slate-500">{title}</p>
       <p className="mt-2 text-2xl font-bold text-slate-900">{value}</p>
     </div>
   );
+
+  if (!href) return card;
+
+  return <Link href={href}>{card}</Link>;
 }
 
 function EmptyText({ text }: { text: string }) {
